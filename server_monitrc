@@ -1,0 +1,81 @@
+include /etc/monit.d/*
+set daemon  60              # check services at 30 seconds intervals
+set logfile syslog facility log_daemon
+set mailserver 127.0.0.1
+set httpd port 2812 and
+    use address 0.0.0.0  # only accept connection from localhost
+    allow 0.0.0.0/0        # allow localhost to connect to the server and
+    allow admin:monit      # require user 'admin' with password 'monit'
+
+set alert cit.470.sp2020.team.3@gmail.com
+
+check process ssh with pidfile /var/run/sshd.pid
+    start program = "/usr/bin/systemctl start sshd"
+    stop program = "/usr/bin/systemctl stop sshd"
+    if 5 restarts within 5 cycles then timeout
+
+check process syslogd with pidfile /var/run/syslogd.pid
+    start program = "/usr/bin/systemctl start rsyslog"
+    stop program = "/usr/bin/systemctl stop rsyslog"
+    if 5 restarts within 5 cycles then timeout
+
+check process ldap with pidfile /var/run/openldap/slapd.pid
+    start program = "/usr/bin/systemctl start slapd"
+    stop program = "/usr/bin/systemctl stop slapd"
+    if 5 restarts within 5 cycles then timeout
+
+check process nfs
+    matching "nfsd"
+    start program = "/usr/bin/systemctl start nfs"
+    stop program = "/usr/bin/systemctl stop nfs"
+    if 5 restarts within 5 cycles then timeout
+
+check process httpd with pidfile /var/run/httpd/httpd.pid
+    start program = "/usr/bin/systemctl start httpd"
+    stop program = "/usr/bin/systemctl stop httpd"
+    if 5 restarts within 5 cycles then timeout
+
+check process mmonit with pidfile /usr/local/mmonit-3.7.3/logs/mmonit.pid
+    start program = "/usr/local/mmonit-3.7.3/bin/mmonit"
+    stop program = "/usr/local/mmonit-3.7.3/bin/mmonit stop"
+    if 5 restarts within 5 cycles then timeout
+
+check system server-team3.hh.nku.edu
+    if swap usage > 80% for 5 cycles then alert
+    if cpu usage > 80% for 5 cycles then alert
+    if memory usage > 80% for 5 cycles then alert
+
+check filesystem home with path /home
+    if space usage > 80% then alert
+
+check filesystem var with path /var
+    if space usage > 80% then alert
+
+check filesystem root with path /
+    if space usage > 80% then alert
+
+check host Irwin1Client1-ping with address 10.2.7.35
+    if failed ping then alert
+check host Irwin1Client1-ssh with address 10.2.7.35
+    if failed port 22 protocol ssh with timeout 15 seconds then alert
+#check host Irwin1Client1-nfs with address 10.2.7.35
+#       if failed port 2049 protocol nfs4 with timeout 5 seconds then alert
+
+check host group3client1-ping with address 10.2.58.175
+	if failed ping then alert
+check host group3client1-ssh with address 10.2.58.175
+	if failed port 22 protocol ssh with timeout 5 seconds then alert
+check host group3client1-nfs with address 10.2.58.175
+	if failed port 2049 with timeout 5 seconds then alert
+#check host group3client1-syslog with address 10.2.58.175
+#	if failed port 514 with timeout 5 seconds then alert
+#check host group3client1-ldap with address 10.2.58.175
+#	if failed port 389 with timeout 5 seconds then alert
+
+
+check host group3client2-ping with address 10.2.57.239
+        if failed ping then alert
+check host group3client2-ssh with address 10.2.57.239
+        if failed port 22 protocol ssh with timeout 5 seconds then alert
+check host group3client2-nfs with address 10.2.57.239
+        if failed port 2049 with timeout 5 seconds then alert
